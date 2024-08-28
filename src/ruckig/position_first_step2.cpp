@@ -1,3 +1,8 @@
+#ifdef TC_VER
+#include "TcPch.h"
+#endif // TC_VER
+#pragma hdrstop
+
 #include <ruckig/block.hpp>
 #include <ruckig/position.hpp>
 #include <ruckig/profile.hpp>

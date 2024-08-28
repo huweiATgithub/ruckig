@@ -1,3 +1,8 @@
+#ifdef TC_VER
+#include "TcPch.h"
+#endif
+#pragma hdrstop
+
 #include <ruckig/block.hpp>
 #include <ruckig/position.hpp>
 
@@ -25,7 +30,7 @@ void PositionSecondOrderStep1::time_acc0(ProfileIter& profile, double vMax, doub
 void PositionSecondOrderStep1::time_none(ProfileIter& profile, double vMax, double vMin, double aMax, double aMin, bool return_after_found) const {
     double h1 = (aMax*vf*vf - aMin*v0*v0 - 2*aMax*aMin*pd)/(aMax - aMin);
     if (h1 >= 0.0) {
-        h1 = std::sqrt(h1);
+        h1 = compat_sqrt(h1);
 
         // Solution 1
         {
@@ -63,7 +68,7 @@ void PositionSecondOrderStep1::time_none(ProfileIter& profile, double vMax, doub
 }
 
 bool PositionSecondOrderStep1::time_all_single_step(Profile* profile, double vMax, double vMin, double aMax, double aMin) const {
-    if (std::abs(vf - v0) > DBL_EPSILON) {
+    if (compat_abs(vf - v0) > DBL_EPSILON) {
         return false;
     }
 
@@ -75,13 +80,13 @@ bool PositionSecondOrderStep1::time_all_single_step(Profile* profile, double vMa
     profile->t[5] = 0;
     profile->t[6] = 0;
 
-    if (std::abs(v0) > DBL_EPSILON) {
+    if (compat_abs(v0) > DBL_EPSILON) {
         profile->t[3] = pd / v0;
         if (profile->check_for_second_order<ControlSigns::UDDU, ReachedLimits::NONE>(0.0, 0.0, vMax, vMin)) {
             return true;
         }
 
-    } else if (std::abs(pd) < DBL_EPSILON) {
+    } else if (compat_abs(pd) < DBL_EPSILON) {
         if (profile->check_for_second_order<ControlSigns::UDDU, ReachedLimits::NONE>(0.0, 0.0, vMax, vMin)) {
             return true;
         }
@@ -99,7 +104,7 @@ bool PositionSecondOrderStep1::get_profile(const Profile& input, Block& block) {
 
         if (time_all_single_step(&p, _vMax, _vMin, _aMax, _aMin)) {
             block.t_min = p.t_sum.back() + p.brake.duration + p.accel.duration;
-            if (std::abs(v0) > DBL_EPSILON) {
+            if (compat_abs(v0) > DBL_EPSILON) {
                 block.a = Block::Interval(block.t_min, std::numeric_limits<double>::infinity());
             }
             return true;
@@ -111,7 +116,7 @@ bool PositionSecondOrderStep1::get_profile(const Profile& input, Block& block) {
     ProfileIter profile = start;
     profile->set_boundary(input);
 
-    if (std::abs(vf) < DBL_EPSILON) {
+    if (compat_abs(vf) < DBL_EPSILON) {
         // There is no blocked interval when vf==0, so return after first found profile
         const double vMax = (pd >= 0) ? _vMax : _vMin;
         const double vMin = (pd >= 0) ? _vMin : _vMax;

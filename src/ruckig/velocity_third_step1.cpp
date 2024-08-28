@@ -1,5 +1,11 @@
+#ifdef TC_VER
+#include "TcPch.h"
+#endif
+#pragma hdrstop
+
 #include <ruckig/block.hpp>
 #include <ruckig/velocity.hpp>
+#include <tc_compat/compat.hpp>
 
 
 namespace ruckig {
@@ -25,7 +31,7 @@ void VelocityThirdOrderStep1::time_acc0(ProfileIter& profile, double aMax, doubl
 void VelocityThirdOrderStep1::time_none(ProfileIter& profile, double aMax, double aMin, double jMax, bool return_after_found) const {
     double h1 = (a0*a0 + af*af)/2 + jMax*vd;
     if (h1 >= 0.0) {
-        h1 = std::sqrt(h1);
+        h1 = compat_sqrt(h1);
 
         // Solution 1
         {
@@ -63,7 +69,7 @@ void VelocityThirdOrderStep1::time_none(ProfileIter& profile, double aMax, doubl
 }
 
 bool VelocityThirdOrderStep1::time_all_single_step(Profile* profile, double aMax, double aMin, double jMax) const {
-    if (std::abs(af - a0) > DBL_EPSILON) {
+    if (compat_abs(af - a0) > DBL_EPSILON) {
         return false;
     }
 
@@ -75,13 +81,13 @@ bool VelocityThirdOrderStep1::time_all_single_step(Profile* profile, double aMax
     profile->t[5] = 0;
     profile->t[6] = 0;
 
-    if (std::abs(a0) > DBL_EPSILON) {
+    if (compat_abs(a0) > DBL_EPSILON) {
         profile->t[3] = vd / a0;
         if (profile->check_for_velocity<ControlSigns::UDDU, ReachedLimits::NONE>(0.0, aMax, aMin)) {
             return true;
         }
 
-    } else if (std::abs(vd) < DBL_EPSILON) {
+    } else if (compat_abs(vd) < DBL_EPSILON) {
         if (profile->check_for_velocity<ControlSigns::UDDU, ReachedLimits::NONE>(0.0, aMax, aMin)) {
             return true;
         }
@@ -99,7 +105,7 @@ bool VelocityThirdOrderStep1::get_profile(const Profile& input, Block& block) {
 
         if (time_all_single_step(&p, _aMax, _aMin, _jMax)) {
             block.t_min = p.t_sum.back() + p.brake.duration + p.accel.duration;
-            if (std::abs(a0) > DBL_EPSILON) {
+            if (compat_abs(a0) > DBL_EPSILON) {
                 block.a = Block::Interval(block.t_min, std::numeric_limits<double>::infinity());
             }
             return true;
@@ -111,7 +117,7 @@ bool VelocityThirdOrderStep1::get_profile(const Profile& input, Block& block) {
     ProfileIter profile = start;
     profile->set_boundary(input);
 
-    if (std::abs(af) < DBL_EPSILON) {
+    if (compat_abs(af) < DBL_EPSILON) {
         // There is no blocked interval when af==0, so return after first found profile
         const double aMax = (vd >= 0) ? _aMax : _aMin;
         const double aMin = (vd >= 0) ? _aMin : _aMax;

@@ -1,7 +1,13 @@
+#ifdef TC_VER
+#include "TcPch.h"
+#endif
+#pragma hdrstop
+
 #include <ruckig/block.hpp>
 #include <ruckig/position.hpp>
 #include <ruckig/profile.hpp>
 #include <ruckig/roots.hpp>
+#include <tc_compat/compat.hpp>
 
 
 namespace ruckig {
@@ -41,7 +47,7 @@ PositionThirdOrderStep2::PositionThirdOrderStep2(double tf, double p0, double v0
 bool PositionThirdOrderStep2::time_acc0_acc1_vel(Profile& profile, double vMax, double vMin, double aMax, double aMin, double jMax) {
     // Profile UDDU, Solution 1
     if ((2*(aMax - aMin) + ad)/jMax < tf) {
-        const double h1 = std::sqrt((a0_p4 + af_p4 - 4*a0_p3*(2*aMax + aMin)/3 - 4*af_p3*(aMax + 2*aMin)/3 + 2*(a0_a0 - af_af)*aMax*aMax + (4*a0*aMax - 2*a0_a0)*(af_af - 2*af*aMin + (aMin - aMax)*aMin + 2*jMax*(aMin*tf - vd)) + 2*af_af*(aMin*aMin + 2*jMax*(aMax*tf - vd)) + 4*jMax*(2*aMin*(af*vd + jMax*g1) + (aMax*aMax - aMin*aMin)*vd + jMax*vd_vd) + 8*aMax*jMax_jMax*(pd - tf*vf))/(aMax*aMin) + 4*af_af + 2*a0_a0 + (4*af + aMax - aMin)*(aMax - aMin) + 4*jMax*(aMin - aMax + jMax*tf - 2*af)*tf) * std::abs(jMax)/jMax;
+        const double h1 = compat_sqrt((a0_p4 + af_p4 - 4*a0_p3*(2*aMax + aMin)/3 - 4*af_p3*(aMax + 2*aMin)/3 + 2*(a0_a0 - af_af)*aMax*aMax + (4*a0*aMax - 2*a0_a0)*(af_af - 2*af*aMin + (aMin - aMax)*aMin + 2*jMax*(aMin*tf - vd)) + 2*af_af*(aMin*aMin + 2*jMax*(aMax*tf - vd)) + 4*jMax*(2*aMin*(af*vd + jMax*g1) + (aMax*aMax - aMin*aMin)*vd + jMax*vd_vd) + 8*aMax*jMax_jMax*(pd - tf*vf))/(aMax*aMin) + 4*af_af + 2*a0_a0 + (4*af + aMax - aMin)*(aMax - aMin) + 4*jMax*(aMin - aMax + jMax*tf - 2*af)*tf) * compat_abs(jMax)/jMax;
 
         profile.t[0] = (-a0 + aMax)/jMax;
         profile.t[1] = (-(af_af - a0_a0 + 2*aMax*aMax + aMin*(aMin - 2*ad - 3*aMax) + 2*jMax*(aMin*tf - vd)) + aMin*h1)/(2*(aMax - aMin)*jMax);
@@ -97,7 +103,7 @@ bool PositionThirdOrderStep2::time_acc1_vel(Profile& profile, double vMax, doubl
             }
 
             // Single Newton step (regarding pd)
-            if (std::abs(a0 + jMax*t) > 16*DBL_EPSILON) {
+            if (compat_abs(a0 + jMax*t) > 16*DBL_EPSILON) {
                 const double h0 = jMax*t*t;
                 const double orig = -pd + (3*(a0_p4 + af_p4) - 8*af_p3*aMin - 4*a0_p3*aMin + 6*af_af*(aMin*aMin + 2*jMax*(h0 - vd)) + 6*a0_a0*(af_af - 2*af*aMin + aMin*aMin + 2*aMin*jMax*(-2*t + tf) + 2*jMax*(5*h0 - vd)) + 24*a0*jMax*t*(a0_a0 + af_af - 2*af*aMin + aMin*aMin + 2*jMax*(aMin*(-t + tf) + h0 - vd)) - 24*af*aMin*jMax*(h0 - vd) + 12*jMax*(aMin*aMin*(h0 - vd) + jMax*(h0 - vd)*(h0 - vd)))/(24*aMin*jMax_jMax) + h0*(tf - t) + tf*v0;
                 const double deriv = (a0 + jMax*t)*((a0_a0 + af_af)/(aMin*jMax) + (aMin - a0 - 2*af)/jMax + (4*a0*t + 2*h0 - 2*vd)/aMin + 2*tf - 3*t);
@@ -261,7 +267,7 @@ bool PositionThirdOrderStep2::time_vel(Profile& profile, double vMax, double vMi
     const double tz_max = std::min((tf - a0/jMax)/2, (aMax - a0)/jMax);
 
     // Profile UDDU
-    if (std::abs(v0) < DBL_EPSILON && std::abs(a0) < DBL_EPSILON && std::abs(vf) < DBL_EPSILON && std::abs(af) < DBL_EPSILON) {
+    if (compat_abs(v0) < DBL_EPSILON && compat_abs(a0) < DBL_EPSILON && compat_abs(vf) < DBL_EPSILON && compat_abs(af) < DBL_EPSILON) {
         std::array<double, 4> polynom;
         polynom[0] = 1;
         polynom[1] = -tf/2;
@@ -321,10 +327,10 @@ bool PositionThirdOrderStep2::time_vel(Profile& profile, double vMax, double vMi
         const auto check_root = [&](double t) {
             // Single Newton step (regarding pd)
             {
-                const double h1 = std::sqrt((a0_a0 + af_af)/(2*jMax_jMax) + (2*a0*t + jMax*t*t - vd)/jMax);
+                const double h1 = compat_sqrt((a0_a0 + af_af)/(2*jMax_jMax) + (2*a0*t + jMax*t*t - vd)/jMax);
                 const double orig = -pd - (2*a0_p3 + 4*af_p3 + 24*a0*jMax*t*(af + jMax*(h1 + t - tf)) + 6*a0_a0*(af + jMax*(2*t - tf)) + 6*(a0_a0 + af_af)*jMax*h1 + 12*af*jMax*(jMax*t*t - vd) + 12*jMax_jMax*(jMax*t*t*(h1 + t - tf) - tf*v0 - h1*vd))/(12*jMax_jMax);
                 const double deriv_newton = -(a0 + jMax*t)*(3*(h1 + t) - 2*tf + (a0 + 2*af)/jMax);
-                if (!std::isnan(orig) && !std::isnan(deriv_newton) && std::abs(deriv_newton) > DBL_EPSILON) {
+                if (!std::isnan(orig) && !std::isnan(deriv_newton) && compat_abs(deriv_newton) > DBL_EPSILON) {
                     t -= orig / deriv_newton;
                 }
             }
@@ -333,7 +339,7 @@ bool PositionThirdOrderStep2::time_vel(Profile& profile, double vMax, double vMi
                 return false;
             }
 
-            const double h1 = std::sqrt((a0_a0 + af_af)/(2*jMax_jMax) + (t*(2*a0 + jMax*t) - vd)/jMax);
+            const double h1 = compat_sqrt((a0_a0 + af_af)/(2*jMax_jMax) + (t*(2*a0 + jMax*t) - vd)/jMax);
 
             profile.t[0] = t;
             profile.t[1] = 0;
@@ -352,12 +358,12 @@ bool PositionThirdOrderStep2::time_vel(Profile& profile, double vMax, double vMi
             }
 
             const double orig = roots::poly_eval(deriv, tz);
-            if (std::abs(orig) > roots::tolerance) {
+            if (compat_abs(orig) > roots::tolerance) {
                 tz -= orig / roots::poly_eval(dderiv, tz);
             }
 
             const double val_new = roots::poly_eval(polynom, tz);
-            if (std::abs(val_new) < 64 * std::abs(roots::poly_eval(dderiv, tz)) * roots::tolerance) {
+            if (compat_abs(val_new) < 64 * compat_abs(roots::poly_eval(dderiv, tz)) * roots::tolerance) {
                 if (check_root(tz)) {
                     return true;
                 }
@@ -373,7 +379,7 @@ bool PositionThirdOrderStep2::time_vel(Profile& profile, double vMax, double vMi
             if (check_root(roots::shrink_interval(polynom, tz_current, tz_max))) {
                 return true;
             }
-        } else if (std::abs(val_max) < 8 * DBL_EPSILON) {
+        } else if (compat_abs(val_max) < 8 * DBL_EPSILON) {
             if (check_root(tz_max)) {
                 return true;
             }
@@ -411,7 +417,7 @@ bool PositionThirdOrderStep2::time_vel(Profile& profile, double vMax, double vMi
             }
 
             const double orig = roots::poly_eval(dderiv, tz);
-            if (std::abs(orig) > roots::tolerance) {
+            if (compat_abs(orig) > roots::tolerance) {
                 tz -= orig / roots::poly_eval(roots::poly_derivative(dderiv), tz);
             }
 
@@ -429,22 +435,22 @@ bool PositionThirdOrderStep2::time_vel(Profile& profile, double vMax, double vMi
         const auto check_root = [&](double t) {
             // Double Newton step (regarding pd)
             {
-                double h1 = std::sqrt((af_af - a0_a0)/(2*jMax_jMax) - ((2*a0 + jMax*t)*t - vd)/jMax);
+                double h1 = compat_sqrt((af_af - a0_a0)/(2*jMax_jMax) - ((2*a0 + jMax*t)*t - vd)/jMax);
                 double orig = -pd + (af_p3 - a0_p3 + 3*a0_a0*jMax*(tf - 2*t))/(6*jMax_jMax) + (2*a0 + jMax*t)*t*(tf - t) + (jMax*h1 - af)*h1*h1 + tf*v0;
                 double deriv_newton = (a0 + jMax*t)*(2*(af + jMax*tf) - 3*jMax*(h1 + t) - a0)/jMax;
 
                 t -= orig / deriv_newton;
 
-                h1 = std::sqrt((af_af - a0_a0)/(2*jMax_jMax) - ((2*a0 + jMax*t)*t - vd)/jMax);
+                h1 = compat_sqrt((af_af - a0_a0)/(2*jMax_jMax) - ((2*a0 + jMax*t)*t - vd)/jMax);
                 orig = -pd + (af_p3 - a0_p3 + 3*a0_a0*jMax*(tf - 2*t))/(6*jMax_jMax) + (2*a0 + jMax*t)*t*(tf - t) + (jMax*h1 - af)*h1*h1 + tf*v0;
-                if (std::abs(orig) > 1e-9) {
+                if (compat_abs(orig) > 1e-9) {
                     deriv_newton = (a0 + jMax*t)*(2*(af + jMax*tf) - 3*jMax*(h1 + t) - a0)/jMax;
 
                     t -= orig / deriv_newton;
                 }
             }
 
-            const double h1 = std::sqrt((af_af - a0_a0)/(2*jMax_jMax) - ((2*a0 + jMax*t)*t - vd)/jMax);
+            const double h1 = compat_sqrt((af_af - a0_a0)/(2*jMax_jMax) - ((2*a0 + jMax*t)*t - vd)/jMax);
 
             profile.t[0] = t;
             profile.t[1] = 0;
@@ -465,7 +471,7 @@ bool PositionThirdOrderStep2::time_vel(Profile& profile, double vMax, double vMi
             }
 
             const double p_val = roots::poly_eval(polynom, tz);
-            if (std::abs(p_val) < 64 * std::abs(roots::poly_eval(dderiv, tz)) * roots::tolerance) {
+            if (compat_abs(p_val) < 64 * compat_abs(roots::poly_eval(dderiv, tz)) * roots::tolerance) {
                 if (check_root(tz)) {
                     return true;
                 }
@@ -488,7 +494,7 @@ bool PositionThirdOrderStep2::time_vel(Profile& profile, double vMax, double vMi
 }
 
 bool PositionThirdOrderStep2::time_acc0_acc1(Profile& profile, double vMax, double vMin, double aMax, double aMin, double jMax) {
-    if (std::abs(a0) < DBL_EPSILON && std::abs(af) < DBL_EPSILON) {
+    if (compat_abs(a0) < DBL_EPSILON && compat_abs(af) < DBL_EPSILON) {
         const double h1 = 2*aMin*g1 + vd_vd + aMax*(2*pd + aMin*tf_tf - 2*tf*vf);
         const double h2 = ((aMax - aMin)*(-aMin*vd + aMax*(aMin*tf - vd)));
 
@@ -522,7 +528,7 @@ bool PositionThirdOrderStep2::time_acc0_acc1(Profile& profile, double vMax, doub
 
     // UDDU
     {
-        const double h1 = std::sqrt(144*pow2((aMax - aMin)*(-aMin*vd + aMax*(aMin*tf - vd)) - af_af*(aMax*tf - vd) + 2*af*aMin*(aMax*tf - vd) + a0_a0*(aMin*tf + v0 - vf) - 2*a0*aMax*(aMin*tf - vd)) + 48*ad*(3*a0_p3 - 3*af_p3 + 12*aMax*aMin*(-aMax + aMin) + 4*af_af*(aMax + 2*aMin) + a0*(-3*af_af + 8*af*(aMin - aMax) + 6*(aMax*aMax + 2*aMax*aMin - aMin*aMin)) + 6*af*(aMax*aMax - 2*aMax*aMin - aMin*aMin) + a0_a0*(3*af - 4*(2*aMax + aMin)))*(2*aMin*g1 + vd*vd + aMax*(2*pd + aMin*tf*tf - 2*tf*vf)));
+        const double h1 = compat_sqrt(144*pow2((aMax - aMin)*(-aMin*vd + aMax*(aMin*tf - vd)) - af_af*(aMax*tf - vd) + 2*af*aMin*(aMax*tf - vd) + a0_a0*(aMin*tf + v0 - vf) - 2*a0*aMax*(aMin*tf - vd)) + 48*ad*(3*a0_p3 - 3*af_p3 + 12*aMax*aMin*(-aMax + aMin) + 4*af_af*(aMax + 2*aMin) + a0*(-3*af_af + 8*af*(aMin - aMax) + 6*(aMax*aMax + 2*aMax*aMin - aMin*aMin)) + 6*af*(aMax*aMax - 2*aMax*aMin - aMin*aMin) + a0_a0*(3*af - 4*(2*aMax + aMin)))*(2*aMin*g1 + vd*vd + aMax*(2*pd + aMin*tf*tf - 2*tf*vf)));
 
         const double jf = -(3*af_af*aMax*tf - 3*a0_a0*aMin*tf - 6*ad*aMax*aMin*tf + 3*aMax*aMin*(aMin - aMax)*tf + 3*(a0_a0 - af_af)*vd + 6*vd*(af*aMin - a0*aMax) + 3*(aMax*aMax - aMin*aMin)*vd + h1/4)/(6*(2*aMin*g1 + vd*vd + aMax*(2*pd + aMin*tf_tf - 2*tf*vf)));
         profile.t[0] = (aMax - a0)/jf;
@@ -545,8 +551,8 @@ bool PositionThirdOrderStep2::time_acc1(Profile& profile, double vMax, double vM
     // a3 != 0
     // Case UDDU
     {
-        const double h0 = std::sqrt(jMax_jMax*(a0_p4 + af_p4 - 4*af_p3*jMax*tf + 6*af_af*jMax_jMax*tf_tf - 4*a0_p3*(af - jMax*tf) + 6*a0_a0*(af - jMax*tf)*(af - jMax*tf) + 24*af*jMax_jMax*g1 - 4*a0*(af_p3 - 3*af_af*jMax*tf + 6*jMax_jMax*(-pd + tf*vf)) - 12*jMax_jMax*(-vd_vd + jMax*tf*g2))/3)/jMax;
-        const double h1 = std::sqrt((a0_a0 + af_af - 2*a0*af - 2*ad*jMax*tf + 2*h0)/jMax_jMax + tf_tf);
+        const double h0 = compat_sqrt(jMax_jMax*(a0_p4 + af_p4 - 4*af_p3*jMax*tf + 6*af_af*jMax_jMax*tf_tf - 4*a0_p3*(af - jMax*tf) + 6*a0_a0*(af - jMax*tf)*(af - jMax*tf) + 24*af*jMax_jMax*g1 - 4*a0*(af_p3 - 3*af_af*jMax*tf + 6*jMax_jMax*(-pd + tf*vf)) - 12*jMax_jMax*(-vd_vd + jMax*tf*g2))/3)/jMax;
+        const double h1 = compat_sqrt((a0_a0 + af_af - 2*a0*af - 2*ad*jMax*tf + 2*h0)/jMax_jMax + tf_tf);
 
         profile.t[0] = -(a0_a0 + af_af + 2*a0*(jMax*tf - af) - 2*jMax*vd + h0)/(2*jMax*(-ad + jMax*tf));
         profile.t[1] = 0;
@@ -563,8 +569,8 @@ bool PositionThirdOrderStep2::time_acc1(Profile& profile, double vMax, double vM
 
     // Case UDUD
     {
-        const double h0 = std::sqrt(jMax_jMax*(a0_p4 + af_p4 + 4*(af_p3 - a0_p3)*jMax*tf + 6*af_af*jMax_jMax*tf_tf + 6*a0_a0*(af + jMax*tf)*(af + jMax*tf) + 24*af*jMax_jMax*g1 - 4*a0*(a0_a0*af + af_p3 + 3*af_af*jMax*tf + 6*jMax_jMax*(-pd + tf*vf)) + 12*jMax_jMax*(vd_vd + jMax*tf*g2))/3)/jMax;
-        const double h1 = std::sqrt((a0_a0 + af_af - 2*a0*af + 2*ad*jMax*tf + 2*h0)/jMax_jMax + tf_tf);
+        const double h0 = compat_sqrt(jMax_jMax*(a0_p4 + af_p4 + 4*(af_p3 - a0_p3)*jMax*tf + 6*af_af*jMax_jMax*tf_tf + 6*a0_a0*(af + jMax*tf)*(af + jMax*tf) + 24*af*jMax_jMax*g1 - 4*a0*(a0_a0*af + af_p3 + 3*af_af*jMax*tf + 6*jMax_jMax*(-pd + tf*vf)) + 12*jMax_jMax*(vd_vd + jMax*tf*g2))/3)/jMax;
+        const double h1 = compat_sqrt((a0_a0 + af_af - 2*a0*af + 2*ad*jMax*tf + 2*h0)/jMax_jMax + tf_tf);
 
         profile.t[0] = 0;
         profile.t[1] = 0;
@@ -584,7 +590,7 @@ bool PositionThirdOrderStep2::time_acc1(Profile& profile, double vMax, double vM
         const double h0a = a0_p3 - af_p3 - 3*a0_a0*aMin + 3*aMin*aMin*(a0 + jMax*tf) + 3*af*aMin*(-aMin - 2*jMax*tf) - 3*af_af*(-aMin - jMax*tf) - 3*jMax_jMax*(-2*pd - aMin*tf_tf + 2*tf*vf);
         const double h0b = a0_a0 + af_af - 2*(a0 + af)*aMin + 2*(aMin*aMin - jMax*(-aMin*tf + vd));
         const double h0c = a0_p4 + 3*af_p4 - 4*(a0_p3 + 2*af_p3)*aMin + 6*a0_a0*aMin*aMin + 6*af_af*(aMin*aMin - 2*jMax*vd) + 12*jMax*(2*aMin*jMax*g1 - aMin*aMin*vd + jMax*vd_vd) + 24*af*aMin*jMax*vd - 4*a0*(af_p3 - 3*af*aMin*(-aMin - 2*jMax*tf) + 3*af_af*(-aMin - jMax*tf) + 3*jMax*(-aMin*aMin*tf + jMax*(-2*pd - aMin*tf_tf + 2*tf*vf)));
-        const double h1 = std::abs(jMax)/jMax * std::sqrt(4*h0a*h0a - 6*h0b*h0c);
+        const double h1 = compat_abs(jMax)/jMax * compat_sqrt(4*h0a*h0a - 6*h0b*h0c);
         const double h2 = 6*jMax*h0b;
 
         profile.t[0] = 0;
@@ -605,7 +611,7 @@ bool PositionThirdOrderStep2::time_acc1(Profile& profile, double vMax, double vM
         const double h0a = -a0_p3 + af_p3 + 3*(a0_a0 - af_af)*aMax - 3*ad*aMax*aMax - 6*af*aMax*jMax*tf + 3*af_af*jMax*tf + 3*jMax*(aMax*aMax*tf + jMax*(-2*pd - aMax*tf_tf + 2*tf*vf));
         const double h0b = a0_a0 - af_af + 2*ad*aMax + 2*jMax*(aMax*tf - vd);
         const double h0c = a0_p4 + 3*af_p4 - 4*(a0_p3 + 2*af_p3)*aMax + 6*a0_a0*aMax*aMax - 24*af*aMax*jMax*vd + 12*jMax*(2*aMax*jMax*g1 + jMax*vd_vd + aMax*aMax*vd) + 6*af_af*(aMax*aMax + 2*jMax*vd) - 4*a0*(af_p3 + 3*af*aMax*(aMax - 2*jMax*tf) - 3*af_af*(aMax - jMax*tf) + 3*jMax*(aMax*aMax*tf + jMax*(-2*pd - aMax*tf_tf + 2*tf*vf)));
-        const double h1 = std::abs(jMax)/jMax * std::sqrt(4*h0a*h0a - 6*h0b*h0c);
+        const double h1 = compat_abs(jMax)/jMax * compat_sqrt(4*h0a*h0a - 6*h0b*h0c);
         const double h2 = 6*jMax*h0b;
 
         profile.t[0] = 0;
@@ -626,7 +632,7 @@ bool PositionThirdOrderStep2::time_acc1(Profile& profile, double vMax, double vM
 bool PositionThirdOrderStep2::time_acc0(Profile& profile, double vMax, double vMin, double aMax, double aMin, double jMax) {
     // UDUD
     {
-        const double h1 = std::sqrt(ad_ad/(2*jMax_jMax) - ad*(aMax - a0)/(jMax_jMax) + (aMax*tf - vd)/jMax);
+        const double h1 = compat_sqrt(ad_ad/(2*jMax_jMax) - ad*(aMax - a0)/(jMax_jMax) + (aMax*tf - vd)/jMax);
 
         profile.t[0] = (aMax - a0)/jMax;
         profile.t[1] = tf - ad/jMax - 2*h1;
@@ -645,7 +651,7 @@ bool PositionThirdOrderStep2::time_acc0(Profile& profile, double vMax, double vM
     {
         const double h0a = -a0_a0 + af_af - 2*ad*aMax + 2*jMax*(aMax*tf - vd);
         const double h0b = a0_p3 + 2*af_p3 - 6*af_af*aMax - 3*a0_a0*(af - jMax*tf) - 3*a0*aMax*(aMax - 2*af + 2*jMax*tf) - 3*jMax*(jMax*(-2*pd + aMax*tf_tf + 2*tf*v0) + aMax*(aMax*tf - 2*vd)) + 3*af*(aMax*aMax + 2*aMax*jMax*tf - 2*jMax*vd);
-        const double h0 = std::abs(jMax) * std::sqrt(4*h0b*h0b - 18*h0a*h0a*h0a);
+        const double h0 = compat_abs(jMax) * compat_sqrt(4*h0b*h0b - 18*h0a*h0a*h0a);
         const double h1 = 3*jMax*h0a;
 
         profile.t[0] = (-a0 + aMax)/jMax;
@@ -667,7 +673,7 @@ bool PositionThirdOrderStep2::time_acc0(Profile& profile, double vMax, double vM
     {
         const double h0a = a0_p3 + 2*af_p3 - 6*(af_af + aMax*aMax)*aMax - 6*(a0 + af)*aMax*jMax*tf + 9*aMax*aMax*(af + jMax*tf) + 3*a0*aMax*(-2*af + 3*aMax) + 3*a0_a0*(af - 2*aMax + jMax*tf) - 6*jMax_jMax*g1 + 6*(af - aMax)*jMax*vd - 3*aMax*jMax_jMax*tf_tf;
         const double h0b = a0_a0 + af_af + 2*(aMax*aMax - (a0 + af)*aMax + jMax*(vd - aMax*tf));
-        const double h1 = std::abs(jMax)/jMax * std::sqrt(4*h0a*h0a - 18*h0b*h0b*h0b);
+        const double h1 = compat_abs(jMax)/jMax * compat_sqrt(4*h0a*h0a - 18*h0b*h0b*h0b);
         const double h2 = 6*jMax*h0b;
 
         profile.t[0] = (-a0 + aMax)/jMax;
@@ -687,8 +693,8 @@ bool PositionThirdOrderStep2::time_acc0(Profile& profile, double vMax, double vM
 }
 
 bool PositionThirdOrderStep2::time_none(Profile& profile, double vMax, double vMin, double aMax, double aMin, double jMax) {
-    if (std::abs(v0) < DBL_EPSILON && std::abs(a0) < DBL_EPSILON && std::abs(af) < DBL_EPSILON) {
-        const double h1 = std::sqrt(tf_tf*vf_vf + pow2(4*pd - tf*vf));
+    if (compat_abs(v0) < DBL_EPSILON && compat_abs(a0) < DBL_EPSILON && compat_abs(af) < DBL_EPSILON) {
+        const double h1 = compat_sqrt(tf_tf*vf_vf + pow2(4*pd - tf*vf));
         const double jf = 4*(4*pd - 2*tf*vf + h1)/tf_p3;
 
         profile.t[0] = tf/4;
@@ -704,10 +710,10 @@ bool PositionThirdOrderStep2::time_none(Profile& profile, double vMax, double vM
         }
     }
 
-    if (std::abs(a0) < DBL_EPSILON && std::abs(af) < DBL_EPSILON) {
+    if (compat_abs(a0) < DBL_EPSILON && compat_abs(af) < DBL_EPSILON) {
         // Solution 1
         // {
-        //     const double h1 = std::sqrt(16*pd*(pd - tf*(v0 + vf)) + tf_tf*(5*v0_v0 + 6*v0*vf + 5*vf_vf));
+        //     const double h1 = compat_sqrt(16*pd*(pd - tf*(v0 + vf)) + tf_tf*(5*v0_v0 + 6*v0*vf + 5*vf_vf));
         //     const double jf = 4*(4*pd - 2*tf*(v0 + vf) - h1)/tf_p3;
 
         //     profile.t[0] = (tf*(v0 + 3*vf) - 4*pd)/(4*vd);
@@ -769,7 +775,7 @@ bool PositionThirdOrderStep2::time_none(Profile& profile, double vMax, double vM
 
     // UDUD T 0246
     {
-        const double h0 = std::sqrt(2*jMax_jMax*(2*pow2(a0_p3 - af_p3 - 3*af_af*jMax*tf + 9*af*jMax_jMax*tf_tf - 3*a0_a0*(af + jMax*tf) + 3*a0*pow2(af + jMax*tf) + 3*jMax_jMax*(8*pd + jMax*tf_tf*tf - 8*tf*vf)) - 3*(a0_a0 + af_af - 2*af*jMax*tf - 2*a0*(af + jMax*tf) - jMax*(jMax*tf_tf + 4*v0 - 4*vf))*(a0_p4 + af_p4 + 4*af_p3*jMax*tf + 6*af_af*jMax_jMax*tf_tf - 3*jMax_jMax*jMax_jMax*tf_tf*tf_tf - 4*a0_p3*(af + jMax*tf) + 6*a0_a0*pow2(af + jMax*tf) - 12*af*jMax_jMax*(8*pd + jMax*tf_tf*tf - 8*tf*v0) + 48*jMax_jMax*vd_vd + 48*jMax_jMax*jMax*tf*g2 - 4*a0*(af_p3 + 3*af_af*jMax*tf - 9*af*jMax_jMax*tf_tf - 3*jMax_jMax*(8*pd + jMax*tf_tf*tf - 8*tf*vf)))))/jMax;
+        const double h0 = compat_sqrt(2*jMax_jMax*(2*pow2(a0_p3 - af_p3 - 3*af_af*jMax*tf + 9*af*jMax_jMax*tf_tf - 3*a0_a0*(af + jMax*tf) + 3*a0*pow2(af + jMax*tf) + 3*jMax_jMax*(8*pd + jMax*tf_tf*tf - 8*tf*vf)) - 3*(a0_a0 + af_af - 2*af*jMax*tf - 2*a0*(af + jMax*tf) - jMax*(jMax*tf_tf + 4*v0 - 4*vf))*(a0_p4 + af_p4 + 4*af_p3*jMax*tf + 6*af_af*jMax_jMax*tf_tf - 3*jMax_jMax*jMax_jMax*tf_tf*tf_tf - 4*a0_p3*(af + jMax*tf) + 6*a0_a0*pow2(af + jMax*tf) - 12*af*jMax_jMax*(8*pd + jMax*tf_tf*tf - 8*tf*v0) + 48*jMax_jMax*vd_vd + 48*jMax_jMax*jMax*tf*g2 - 4*a0*(af_p3 + 3*af_af*jMax*tf - 9*af*jMax_jMax*tf_tf - 3*jMax_jMax*(8*pd + jMax*tf_tf*tf - 8*tf*vf)))))/jMax;
         const double h1 = 12*jMax*(-a0_a0 - af_af + 2*af*jMax*tf + 2*a0*(af + jMax*tf) + jMax*(jMax*tf_tf + 4*v0 - 4*vf));
         const double h2 = -4*a0_p3 + 4*af_p3 + 12*a0_a0*af - 12*a0*af_af + 48*jMax_jMax*pd + 12*(a0_a0 - af_af)*jMax*tf - 24*jMax_jMax*tf*(v0 + vf) + 24*ad*jMax*vd;
         const double h3 = 2*a0_p3 - 2*af_p3 - 6*a0_a0*af + 6*a0*af_af;
@@ -837,7 +843,7 @@ bool PositionThirdOrderStep2::time_none(Profile& profile, double vMax, double vM
         {
             const double h1 = 3*jMax*(ad_ad + 2*jMax*(a0*tf - vd));
             const double h2 = ad_ad + 2*jMax*(a0*tf - vd);
-            const double h0 = std::sqrt(4*pow2(2*(a0_p3 - af_p3) - 6*a0_a0*(af - jMax*tf) + 6*jMax_jMax*g1 + 3*a0*(2*af_af - 2*jMax*af*tf + jMax_jMax*tf_tf) + 6*ad*jMax*vd) - 18*h2*h2*h2)/h1 * std::abs(jMax)/jMax;
+            const double h0 = compat_sqrt(4*pow2(2*(a0_p3 - af_p3) - 6*a0_a0*(af - jMax*tf) + 6*jMax_jMax*g1 + 3*a0*(2*af_af - 2*jMax*af*tf + jMax_jMax*tf_tf) + 6*ad*jMax*vd) - 18*h2*h2*h2)/h1 * compat_abs(jMax)/jMax;
 
             profile.t[0] = 0;
             profile.t[1] = 0;
@@ -879,14 +885,14 @@ bool PositionThirdOrderStep2::time_none(Profile& profile, double vMax, double vM
                 {
                     const double h1 = ad_ad/2 + jMax*(af*t + (jMax*t - a0)*(t - tf) - vd);
                     const double h2 = -ad + jMax*(tf - 2*t);
-                    const double h3 = std::sqrt(h1);
-                    const double orig = (af_p3 - a0_p3 + 3*af*jMax*t*(af + jMax*t) + 3*a0_a0*(af + jMax*t) - 3*a0*(af_af + 2*af*jMax*t + jMax_jMax*(t*t - tf_tf)) + 3*jMax_jMax*(-2*pd + jMax*t*(t - tf)*tf + 2*tf*v0))/(6*jMax_jMax) - h3*h3*h3/(jMax*std::abs(jMax)) + ((-ad - jMax*t)*h1)/(jMax_jMax);
-                    const double deriv = (6*jMax*h2*h3/std::abs(jMax) + 2*(-ad - jMax*tf)*h2 - 2*(3*ad_ad + af*jMax*(8*t - 2*tf) + 4*a0*jMax*(-2*t + tf) + 2*jMax*(jMax*t*(3*t - 2*tf) - vd)))/(4*jMax);
+                    const double h3 = compat_sqrt(h1);
+                    const double orig = (af_p3 - a0_p3 + 3*af*jMax*t*(af + jMax*t) + 3*a0_a0*(af + jMax*t) - 3*a0*(af_af + 2*af*jMax*t + jMax_jMax*(t*t - tf_tf)) + 3*jMax_jMax*(-2*pd + jMax*t*(t - tf)*tf + 2*tf*v0))/(6*jMax_jMax) - h3*h3*h3/(jMax*compat_abs(jMax)) + ((-ad - jMax*t)*h1)/(jMax_jMax);
+                    const double deriv = (6*jMax*h2*h3/compat_abs(jMax) + 2*(-ad - jMax*tf)*h2 - 2*(3*ad_ad + af*jMax*(8*t - 2*tf) + 4*a0*jMax*(-2*t + tf) + 2*jMax*(jMax*t*(3*t - 2*tf) - vd)))/(4*jMax);
 
                     t -= orig / deriv;
                 }
 
-                const double h1 = std::sqrt(2*ad_ad + 4*jMax*(ad*t + a0*tf + jMax*t*(t - tf) - vd))/std::abs(jMax);
+                const double h1 = compat_sqrt(2*ad_ad + 4*jMax*(ad*t + a0*tf + jMax*t*(t - tf) - vd))/compat_abs(jMax);
 
                 // Solution 2 with aPlat
                 profile.t[0] = 0;
@@ -929,7 +935,7 @@ bool PositionThirdOrderStep2::time_none(Profile& profile, double vMax, double vM
                     continue;
                 }
 
-                const double h1 = std::sqrt(ad_ad/(2*jMax_jMax) + (a0*(t + tf) - af*t + jMax*t*tf - vd)/jMax);
+                const double h1 = compat_sqrt(ad_ad/(2*jMax_jMax) + (a0*(t + tf) - af*t + jMax*t*tf - vd)/jMax);
 
                 profile.t[0] = t;
                 profile.t[1] = tf - ad/jMax - 2*h1;
@@ -948,7 +954,7 @@ bool PositionThirdOrderStep2::time_none(Profile& profile, double vMax, double vM
 
     // 3 step profile (ak. UZD), sometimes missed because of numerical errors T 012
     {
-        const double h1 = std::sqrt(-ad_ad + jMax*(2*(a0 + af)*tf - 4*vd + jMax*tf_tf)) / std::abs(jMax);
+        const double h1 = compat_sqrt(-ad_ad + jMax*(2*(a0 + af)*tf - 4*vd + jMax*tf_tf)) / compat_abs(jMax);
 
         profile.t[0] = (tf - h1 + ad/jMax)/2;
         profile.t[1] = h1;
@@ -1015,7 +1021,7 @@ bool PositionThirdOrderStep2::time_none_smooth(Profile& profile, double vMax, do
     {
         const double h0 = ad_ad + 2*jMax*(a0*tf - vd);
         const double h1a = 2*(a0_p3 - af_p3) - 6*a0_a0*(af - jMax*tf) + 6*jMax_jMax*(-pd + tf*v0) + 6*a0*af_af + 3*a0*jMax*(jMax*tf_tf - 2*vd) + 6*af*jMax*(vd - tf*a0);
-        const double h1 = std::sqrt(4*h1a*h1a - 18*h0*h0*h0) * std::abs(jMax) / jMax;
+        const double h1 = compat_sqrt(4*h1a*h1a - 18*h0*h0*h0) * compat_abs(jMax) / jMax;
 
         profile.t[0] = 0;
         profile.t[1] = (-a0_p3 + af_p3 + 3*(af_af - a0_a0)*jMax*tf - 3*a0*af*ad - 6*jMax*ad*vd - 6*jMax_jMax*(-2*pd + tf*(v0 + vf)))/(3*jMax*h0);
@@ -1034,7 +1040,7 @@ bool PositionThirdOrderStep2::time_none_smooth(Profile& profile, double vMax, do
         const double h0 = ad_ad + 2*jMax*(vd - af*tf);
         const double h0b = af_p3 - 3*jMax_jMax*(af*tf_tf + 2*(pd - tf*vf));
         const double h1a = a0_p3 + 3*a0*af*ad - h0b;
-        const double h1 = std::sqrt(4*h1a*h1a - 6*h0*(a0_p4 + af_p4 - 4*a0_p3*af + 6*a0_a0*af_af + 12*jMax_jMax*(vd_vd - 2*af*(pd - tf*v0)) - 4*a0*h0b)) * std::abs(jMax) / jMax;
+        const double h1 = compat_sqrt(4*h1a*h1a - 6*h0*(a0_p4 + af_p4 - 4*a0_p3*af + 6*a0_a0*af_af + 12*jMax_jMax*(vd_vd - 2*af*(pd - tf*v0)) - 4*a0*h0b)) * compat_abs(jMax) / jMax;
 
         profile.t[0] = -(2*h1a + h1)/(6*jMax*h0);
         profile.t[1] = h1/(3*jMax*h0);
@@ -1051,8 +1057,8 @@ bool PositionThirdOrderStep2::time_none_smooth(Profile& profile, double vMax, do
 
     // Solution 3
     {
-        const double h0 = std::sqrt(3*(a0_p4 + af_p4 - 4*af_p3*jMax*tf + 6*af_af*jMax_jMax*tf_tf - 4*a0_p3*(af - jMax*tf) + 6*a0_a0*(af - jMax*tf)*(af - jMax*tf) + 24*af*jMax_jMax*(-pd + tf*v0) - 4*a0*(af_p3 - 3*af_af*jMax*tf + 6*jMax_jMax*(-pd + tf*vf)) - 12*jMax_jMax*(-vd_vd + jMax*tf*(-2*pd + tf*(v0 + vf))))) * std::abs(jMax) / jMax;
-        const double h1 = std::sqrt(3*(3*a0_a0 + 3*af_af - 6*a0*af - 6*ad*jMax*tf + 3*jMax_jMax*tf_tf - 2*h0)) * std::abs(jMax) / jMax;
+        const double h0 = compat_sqrt(3*(a0_p4 + af_p4 - 4*af_p3*jMax*tf + 6*af_af*jMax_jMax*tf_tf - 4*a0_p3*(af - jMax*tf) + 6*a0_a0*(af - jMax*tf)*(af - jMax*tf) + 24*af*jMax_jMax*(-pd + tf*v0) - 4*a0*(af_p3 - 3*af_af*jMax*tf + 6*jMax_jMax*(-pd + tf*vf)) - 12*jMax_jMax*(-vd_vd + jMax*tf*(-2*pd + tf*(v0 + vf))))) * compat_abs(jMax) / jMax;
+        const double h1 = compat_sqrt(3*(3*a0_a0 + 3*af_af - 6*a0*af - 6*ad*jMax*tf + 3*jMax_jMax*tf_tf - 2*h0)) * compat_abs(jMax) / jMax;
 
         profile.t[0] = (-3*(a0_a0 + af_af) + 6*a0*af + 6*jMax*(vd - a0*tf) + h0)/(6*jMax*(-ad + jMax*tf));
         profile.t[1] = 0;
@@ -1071,7 +1077,7 @@ bool PositionThirdOrderStep2::time_none_smooth(Profile& profile, double vMax, do
     {
         const double h0 = 6*(ad_ad + 2*af*jMax*tf - 2*jMax*vd);
         const double h1a = 2*(a0_p3 - af_p3 + 3*a0*af*ad + 6*jMax_jMax*(pd - tf*vf) + 3*jMax_jMax*af*tf_tf);
-        const double h1 = std::sqrt(h1a*h1a - h0*(a0_p4 - 4*a0_p3*af + 6*a0_a0*af_af + af_p4 + 24*af*jMax_jMax*(-pd + tf*v0) + 12*jMax_jMax*vd_vd - 4*a0*(af_p3 - 3*af*jMax_jMax*tf_tf + 6*jMax_jMax*(-pd + tf*vf)))) * std::abs(jMax) / jMax;
+        const double h1 = compat_sqrt(h1a*h1a - h0*(a0_p4 - 4*a0_p3*af + 6*a0_a0*af_af + af_p4 + 24*af*jMax_jMax*(-pd + tf*v0) + 12*jMax_jMax*vd_vd - 4*a0*(af_p3 - 3*af*jMax_jMax*tf_tf + 6*jMax_jMax*(-pd + tf*vf)))) * compat_abs(jMax) / jMax;
         const double h2 = 4*a0_p3 - 4*af_p3 + 12*a0*af*ad - 12*jMax_jMax*(pd - tf*vf) - 6*jMax_jMax*af*tf_tf + 12*ad*jMax*(vd - af*tf);
         const double h3 = jMax*h0;
 
@@ -1090,8 +1096,8 @@ bool PositionThirdOrderStep2::time_none_smooth(Profile& profile, double vMax, do
 
     // Solution 1
     {
-        const double h0 = std::sqrt((a0_p4 + af_p4 - 4*af_p3*jMax*tf + 6*af_af*jMax_jMax*tf_tf - 4*a0_p3*(af - jMax*tf) + 6*a0_a0*(af - jMax*tf)*(af - jMax*tf) + 24*af*jMax_jMax*(-pd + tf*v0) - 4*a0*(af_p3 - 3*af_af*jMax*tf + 6*jMax_jMax*(-pd + tf*vf)) - 12*jMax_jMax*(-vd_vd + jMax*tf*(-2*pd + tf*(v0 + vf)))) / 3) * std::abs(jMax) / jMax;
-        const double h1 = std::sqrt(ad_ad - 2*ad*jMax*tf + jMax_jMax*tf_tf + 2*h0) * std::abs(jMax) / jMax;
+        const double h0 = compat_sqrt((a0_p4 + af_p4 - 4*af_p3*jMax*tf + 6*af_af*jMax_jMax*tf_tf - 4*a0_p3*(af - jMax*tf) + 6*a0_a0*(af - jMax*tf)*(af - jMax*tf) + 24*af*jMax_jMax*(-pd + tf*v0) - 4*a0*(af_p3 - 3*af_af*jMax*tf + 6*jMax_jMax*(-pd + tf*vf)) - 12*jMax_jMax*(-vd_vd + jMax*tf*(-2*pd + tf*(v0 + vf)))) / 3) * compat_abs(jMax) / jMax;
+        const double h1 = compat_sqrt(ad_ad - 2*ad*jMax*tf + jMax_jMax*tf_tf + 2*h0) * compat_abs(jMax) / jMax;
 
         profile.t[0] = -(ad_ad + 2*jMax*(a0*tf - vd) + h0)/(2*jMax*(-ad + jMax*tf));
         profile.t[1] = 0;

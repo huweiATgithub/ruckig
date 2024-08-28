@@ -4,6 +4,7 @@
 #include "randomizer.hpp"
 
 #include <ruckig/ruckig.hpp>
+#include <tc_compat/compat.hpp>
 
 
 using namespace ruckig;
@@ -33,7 +34,7 @@ std::tuple<double, double> analyze(const std::vector<double>& v) {
     std::vector<double> diff(v.size());
     std::transform(v.begin(), v.end(), diff.begin(), [mean](double x) { return x - mean; });
     const double sq_sum = std::inner_product(diff.begin(), diff.end(), diff.begin(), 0.0);
-    const double std_deviation = std::sqrt(sq_sum / v.size());
+    const double std_deviation = compat_sqrt(sq_sum / v.size());
     return std::make_tuple(mean, std_deviation);
 }
 

@@ -1,14 +1,21 @@
 #pragma once
 
-#include <array>
-#include <iomanip>
-#include <limits>
 #include <optional>
-#include <sstream>
 #include <type_traits>
 #include <vector>
 
+#ifdef TC_VER
+
+#include <tc_compat/limits.hh>
+
+#else
+
+#include <sstream>
+#include <limits>
 #include <ruckig/error.hpp>
+
+#endif
+
 #include <ruckig/result.hpp>
 #include <ruckig/utils.hpp>
 

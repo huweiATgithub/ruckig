@@ -1,4 +1,10 @@
+#ifdef TC_VER
+#include "TcPch.h"
+#endif // TC_VER
+#pragma hdrstop
+
 #include <ruckig/brake.hpp>
+#include <tc_compat/compat.hpp>
 
 
 namespace ruckig {
@@ -38,8 +44,8 @@ void BrakeProfile::acceleration_brake(double v0, double a0, double vMax, double 
 void BrakeProfile::velocity_brake(double v0, double a0, double vMax, double vMin, double, double aMin, double jMax) {
     j[0] = -jMax;
     const double t_to_a_min = (a0 - aMin)/jMax;
-    const double t_to_v_max = a0/jMax + std::sqrt(a0*a0 + 2 * jMax * (v0 - vMax)) / std::abs(jMax);
-    const double t_to_v_min = a0/jMax + std::sqrt(a0*a0 / 2 + jMax * (v0 - vMin)) / std::abs(jMax);
+    const double t_to_v_max = a0/jMax + compat_sqrt(a0*a0 + 2 * jMax * (v0 - vMax)) / compat_abs(jMax);
+    const double t_to_v_min = a0/jMax + compat_sqrt(a0*a0 / 2 + jMax * (v0 - vMin)) / compat_abs(jMax);
     const double t_min_to_v_max = std::min(t_to_v_max, t_to_v_min);
 
     if (t_to_a_min < t_min_to_v_max) {

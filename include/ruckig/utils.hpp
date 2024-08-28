@@ -1,5 +1,12 @@
 #pragma once
 
+#ifdef TC_VER
+#include <array>
+#include <string>
+#include <tuple>
+#include <type_traits>
+#include <vector>
+#else
 #include <array>
 #include <iomanip>
 #include <sstream>
@@ -7,18 +14,21 @@
 #include <tuple>
 #include <type_traits>
 #include <vector>
+#endif // TC_VER
 
+#ifdef TC_VER
+#include "TcPch.h"
+#endif
 
 namespace ruckig {
 
 //! Constant for indicating a dynamic (run-time settable) number of DoFs
 constexpr static size_t DynamicDOFs {0};
 
-
 //! Vector data type based on the C++ standard library
 template<class T, size_t DOFs> using StandardVector = typename std::conditional<DOFs >= 1, std::array<T, DOFs>, std::vector<T>>::type;
 template<class T, size_t DOFs, size_t SIZE> using StandardSizeVector = typename std::conditional<DOFs >= 1, std::array<T, SIZE>, std::vector<T>>::type;
-
+                        
 
 //! Vector data type based on the Eigen matrix type. Eigen needs to be included seperately
 #ifdef EIGEN_VERSION_AT_LEAST

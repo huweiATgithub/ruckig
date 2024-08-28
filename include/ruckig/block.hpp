@@ -1,10 +1,21 @@
 #pragma once
 
+#ifdef TC_VER
+#include <algorithm>
+#include <tc_compat/limits.hh>
+#include <optional>
+namespace std {
+constexpr std::nullopt_t nullopt{ nullopt_t::_NulloptTag{} };
+}
+#include <string>
+#else
 #include <algorithm>
 #include <limits>
 #include <numeric>
 #include <optional>
 #include <string>
+#endif // TC_VER
+
 
 #include <ruckig/profile.hpp>
 
@@ -68,7 +79,7 @@ public:
             return true;
 
         } else if (valid_profile_counter == 2) {
-            if (std::abs(valid_profiles[0].t_sum.back() - valid_profiles[1].t_sum.back()) < 8 * std::numeric_limits<double>::epsilon()) {
+            if (compat_abs(valid_profiles[0].t_sum.back() - valid_profiles[1].t_sum.back()) < 8 * std::numeric_limits<double>::epsilon()) {
                 block.set_min_profile(valid_profiles[0]);
                 return true;
             }
@@ -85,11 +96,11 @@ public:
         // Only happens due to numerical issues
         } else if (valid_profile_counter == 4) {
             // Find "identical" profiles
-            if (std::abs(valid_profiles[0].t_sum.back() - valid_profiles[1].t_sum.back()) < 32 * std::numeric_limits<double>::epsilon() && valid_profiles[0].direction != valid_profiles[1].direction) {
+            if (compat_abs(valid_profiles[0].t_sum.back() - valid_profiles[1].t_sum.back()) < 32 * std::numeric_limits<double>::epsilon() && valid_profiles[0].direction != valid_profiles[1].direction) {
                 remove_profile<N>(valid_profiles, valid_profile_counter, 1);
-            } else if (std::abs(valid_profiles[2].t_sum.back() - valid_profiles[3].t_sum.back()) < 256 * std::numeric_limits<double>::epsilon() && valid_profiles[2].direction != valid_profiles[3].direction) {
+            } else if (compat_abs(valid_profiles[2].t_sum.back() - valid_profiles[3].t_sum.back()) < 256 * std::numeric_limits<double>::epsilon() && valid_profiles[2].direction != valid_profiles[3].direction) {
                 remove_profile<N>(valid_profiles, valid_profile_counter, 3);
-            } else if (std::abs(valid_profiles[0].t_sum.back() - valid_profiles[3].t_sum.back()) < 256 * std::numeric_limits<double>::epsilon() && valid_profiles[0].direction != valid_profiles[3].direction) {
+            } else if (compat_abs(valid_profiles[0].t_sum.back() - valid_profiles[3].t_sum.back()) < 256 * std::numeric_limits<double>::epsilon() && valid_profiles[0].direction != valid_profiles[3].direction) {
                 remove_profile<N>(valid_profiles, valid_profile_counter, 3);
             } else {
                 return false;
@@ -145,6 +156,7 @@ public:
         return p_min;
     }
 
+#ifndef TC_VER
     std::string to_string() const {
         std::string result = "[" + std::to_string(t_min) + " ";
         if (a) {
@@ -155,6 +167,8 @@ public:
         }
         return result + "-";
     }
+#endif // TC_VER
+
 };
 
 } // namespace ruckig

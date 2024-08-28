@@ -1,7 +1,8 @@
 #pragma once
 
-#include <array>
+#ifndef TC_VER
 #include <iomanip>
+#endif
 #include <type_traits>
 
 #include <ruckig/trajectory.hpp>

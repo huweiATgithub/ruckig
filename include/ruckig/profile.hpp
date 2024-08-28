@@ -1,16 +1,21 @@
 #pragma once
 
-#include <algorithm>
+#ifdef TC_VER
+#include <array>
+#include "limits.h"
+#else
 #include <array>
 #include <cmath>
 #include <iomanip>
-#include <iostream>
 #include <limits>
-#include <optional>
+#endif // TC_VER
+
+
 
 #include <ruckig/brake.hpp>
 #include <ruckig/roots.hpp>
 #include <ruckig/utils.hpp>
+#include <tc_compat/compat.hpp>
 
 
 namespace ruckig {
@@ -101,8 +106,8 @@ public:
         const double aLowLim = (direction == Profile::Direction::UP ? aMin : aMax) - a_eps;
 
         // Velocity limit can be broken in the beginning if both initial velocity and acceleration are too high
-        // std::cout << std::setprecision(15) << "target: " << std::abs(p.back() - pf) << " " << std::abs(v.back() - vf) << " " << std::abs(a.back() - af) << " T: " << t_sum.back() << " " << to_string() << std::endl;
-        return std::abs(v.back() - vf) < v_precision && std::abs(a.back() - af) < a_precision
+        // std::cout << std::setprecision(15) << "target: " << compat_abs(p.back() - pf) << " " << compat_abs(v.back() - vf) << " " << compat_abs(a.back() - af) << " T: " << t_sum.back() << " " << to_string() << std::endl;
+        return compat_abs(v.back() - vf) < v_precision && compat_abs(a.back() - af) < a_precision
             && a[1] >= aLowLim && a[3] >= aLowLim && a[5] >= aLowLim
             && a[1] <= aUppLim && a[3] <= aUppLim && a[5] <= aUppLim;
     }
@@ -110,12 +115,12 @@ public:
     template<ControlSigns control_signs, ReachedLimits limits>
     inline bool check_for_velocity_with_timing(double, double jf, double aMax, double aMin) {
         // Time doesn't need to be checked as every profile has a: tf - ... equation
-        return check_for_velocity<control_signs, limits>(jf, aMax, aMin); // && (std::abs(t_sum.back() - tf) < t_precision);
+        return check_for_velocity<control_signs, limits>(jf, aMax, aMin); // && (compat_abs(t_sum.back() - tf) < t_precision);
     }
 
     template<ControlSigns control_signs, ReachedLimits limits>
     inline bool check_for_velocity_with_timing(double tf, double jf, double aMax, double aMin, double jMax) {
-        return (std::abs(jf) < std::abs(jMax) + j_eps) && check_for_velocity_with_timing<control_signs, limits>(tf, jf, aMax, aMin);
+        return (compat_abs(jf) < compat_abs(jMax) + j_eps) && check_for_velocity_with_timing<control_signs, limits>(tf, jf, aMax, aMin);
     }
 
     inline void set_boundary_for_velocity(double p0_new, double v0_new, double a0_new, double vf_new, double af_new) {
@@ -153,14 +158,14 @@ public:
         direction = (aUp > 0) ? Profile::Direction::UP : Profile::Direction::DOWN;
 
         // Velocity limit can be broken in the beginning if both initial velocity and acceleration are too high
-        // std::cout << std::setprecision(15) << "target: " << std::abs(p.back() - pf) << " " << std::abs(v.back() - vf) << " " << std::abs(a.back() - af) << " T: " << t_sum.back() << " " << to_string() << std::endl;
-        return std::abs(v.back() - vf) < v_precision;
+        // std::cout << std::setprecision(15) << "target: " << compat_abs(p.back() - pf) << " " << compat_abs(v.back() - vf) << " " << compat_abs(a.back() - af) << " T: " << t_sum.back() << " " << to_string() << std::endl;
+        return compat_abs(v.back() - vf) < v_precision;
     }
 
     template<ControlSigns control_signs, ReachedLimits limits>
     inline bool check_for_second_order_velocity_with_timing(double, double aUp) {
         // Time doesn't need to be checked as every profile has a: tf - ... equation
-        return check_for_second_order_velocity<control_signs, limits>(aUp); // && (std::abs(t_sum.back() - tf) < t_precision);
+        return check_for_second_order_velocity<control_signs, limits>(aUp); // && (compat_abs(t_sum.back() - tf) < t_precision);
     }
 
     template<ControlSigns control_signs, ReachedLimits limits>
@@ -261,8 +266,8 @@ public:
         const double aLowLim = (direction == Profile::Direction::UP ? aMin : aMax) - a_eps;
 
         // Velocity limit can be broken in the beginning if both initial velocity and acceleration are too high
-        // std::cout << std::setprecision(16) << "target: " << std::abs(p.back() - pf) << " " << std::abs(v.back() - vf) << " " << std::abs(a.back() - af) << " T: " << t_sum.back() << " " << to_string() << std::endl;
-        return std::abs(p.back() - pf) < p_precision && std::abs(v.back() - vf) < v_precision && std::abs(a.back() - af) < a_precision
+        // std::cout << std::setprecision(16) << "target: " << compat_abs(p.back() - pf) << " " << compat_abs(v.back() - vf) << " " << compat_abs(a.back() - af) << " T: " << t_sum.back() << " " << to_string() << std::endl;
+        return compat_abs(p.back() - pf) < p_precision && compat_abs(v.back() - vf) < v_precision && compat_abs(a.back() - af) < a_precision
             && a[1] >= aLowLim && a[3] >= aLowLim && a[5] >= aLowLim
             && a[1] <= aUppLim && a[3] <= aUppLim && a[5] <= aUppLim
             && v[3] <= vUppLim && v[4] <= vUppLim && v[5] <= vUppLim && v[6] <= vUppLim
@@ -272,12 +277,12 @@ public:
     template<ControlSigns control_signs, ReachedLimits limits>
     inline bool check_with_timing(double, double jf, double vMax, double vMin, double aMax, double aMin) {
         // Time doesn't need to be checked as every profile has a: tf - ... equation
-        return check<control_signs, limits>(jf, vMax, vMin, aMax, aMin); // && (std::abs(t_sum.back() - tf) < t_precision);
+        return check<control_signs, limits>(jf, vMax, vMin, aMax, aMin); // && (compat_abs(t_sum.back() - tf) < t_precision);
     }
 
     template<ControlSigns control_signs, ReachedLimits limits>
     inline bool check_with_timing(double tf, double jf, double vMax, double vMin, double aMax, double aMin, double jMax) {
-        return (std::abs(jf) < std::abs(jMax) + j_eps) && check_with_timing<control_signs, limits>(tf, jf, vMax, vMin, aMax, aMin);
+        return (compat_abs(jf) < compat_abs(jMax) + j_eps) && check_with_timing<control_signs, limits>(tf, jf, vMax, vMin, aMax, aMin);
     }
 
     inline void set_boundary(const Profile& profile) {
@@ -341,8 +346,8 @@ public:
         this->limits = limits;
 
         // Velocity limit can be broken in the beginning if both initial velocity and acceleration are too high
-        // std::cout << std::setprecision(16) << "target: " << std::abs(p.back() - pf) << " " << std::abs(v.back() - vf) << " " << std::abs(a.back() - af) << " T: " << t_sum.back() << " " << to_string() << std::endl;
-        return std::abs(p.back() - pf) < p_precision && std::abs(v.back() - vf) < v_precision
+        // std::cout << std::setprecision(16) << "target: " << compat_abs(p.back() - pf) << " " << compat_abs(v.back() - vf) << " " << compat_abs(a.back() - af) << " T: " << t_sum.back() << " " << to_string() << std::endl;
+        return compat_abs(p.back() - pf) < p_precision && compat_abs(v.back() - vf) < v_precision
             && v[2] <= vUppLim && v[3] <= vUppLim && v[4] <= vUppLim && v[5] <= vUppLim && v[6] <= vUppLim
             && v[2] >= vLowLim && v[3] >= vLowLim && v[4] >= vLowLim && v[5] >= vLowLim && v[6] >= vLowLim;
     }
@@ -350,7 +355,7 @@ public:
     template<ControlSigns control_signs, ReachedLimits limits>
     inline bool check_for_second_order_with_timing(double, double aUp, double aDown, double vMax, double vMin) {
         // Time doesn't need to be checked as every profile has a: tf - ... equation
-        return check_for_second_order<control_signs, limits>(aUp, aDown, vMax, vMin); // && (std::abs(t_sum.back() - tf) < t_precision);
+        return check_for_second_order<control_signs, limits>(aUp, aDown, vMax, vMin); // && (compat_abs(t_sum.back() - tf) < t_precision);
     }
 
     template<ControlSigns control_signs, ReachedLimits limits>
@@ -384,13 +389,13 @@ public:
 
         direction = (vUp > 0) ? Profile::Direction::UP : Profile::Direction::DOWN;
 
-        return std::abs(p.back() - pf) < p_precision;
+        return compat_abs(p.back() - pf) < p_precision;
     }
 
     template<ControlSigns control_signs, ReachedLimits limits>
     inline bool check_for_first_order_with_timing(double, double vUp) {
         // Time doesn't need to be checked as every profile has a: tf - ... equation
-        return check_for_first_order<control_signs, limits>(vUp); // && (std::abs(t_sum.back() - tf) < t_precision);
+        return check_for_first_order<control_signs, limits>(vUp); // && (compat_abs(t_sum.back() - tf) < t_precision);
     }
 
     template<ControlSigns control_signs, ReachedLimits limits>
@@ -427,11 +432,11 @@ public:
 
         if (j != 0) {
             const double D = a * a - 2 * j * v;
-            if (std::abs(D) < std::numeric_limits<double>::epsilon()) {
+            if (compat_abs(D) < std::numeric_limits<double>::epsilon()) {
                 check_position_extremum(-a / j, t_sum, t, p, v, a, j, ext);
 
             } else if (D > 0.0) {
-                const double D_sqrt = std::sqrt(D);
+                const double D_sqrt = compat_sqrt(D);
                 check_position_extremum((-a - D_sqrt) / j, t_sum, t, p, v, a, j, ext);
                 check_position_extremum((-a + D_sqrt) / j, t_sum, t, p, v, a, j, ext);
             }
@@ -481,7 +486,7 @@ public:
                 continue;
             }
 
-            if (std::abs(p[i] - pt) < DBL_EPSILON && t_cum >= time_after) {
+            if (compat_abs(p[i] - pt) < DBL_EPSILON && t_cum >= time_after) {
                 time = t_cum;
                 return true;
             }
@@ -496,7 +501,7 @@ public:
             t_cum += t[i];
         }
 
-        if ((t[6] > 0.0 || t_sum.back() == 0.0) && std::abs(pf - pt) < 1e-9 && t_sum.back() >= time_after) {
+        if ((t[6] > 0.0 || t_sum.back() == 0.0) && compat_abs(pf - pt) < 1e-9 && t_sum.back() >= time_after) {
             time = t_sum.back();
             return true;
         }

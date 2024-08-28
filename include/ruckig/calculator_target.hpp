@@ -2,15 +2,24 @@
 
 #include <algorithm>
 #include <array>
-#include <iostream>
+
+#ifdef TC_VER
+
+#include <tc_compat/limits.hh>
+#include <tc_compat/compat.hpp>
+
+#else
+
 #include <limits>
+#include <ruckig/error.hpp>
+
+#endif
+
 #include <optional>
-#include <tuple>
 #include <type_traits>
 
 #include <ruckig/block.hpp>
 #include <ruckig/brake.hpp>
-#include <ruckig/error.hpp>
 #include <ruckig/input_parameter.hpp>
 #include <ruckig/profile.hpp>
 #include <ruckig/position.hpp>
@@ -54,27 +63,27 @@ private:
                 continue;
             }
 
-            if (inp_per_dof_control_interface[dof] == ControlInterface::Position && std::abs(pd[dof]) > eps) {
+            if (inp_per_dof_control_interface[dof] == ControlInterface::Position && compat_abs(pd[dof]) > eps) {
                 scale_vector = &pd;
                 scale_dof = dof;
                 break;
 
-            } else if (std::abs(inp.current_velocity[dof]) > eps) {
+            } else if (compat_abs(inp.current_velocity[dof]) > eps) {
                 scale_vector = &inp.current_velocity;
                 scale_dof = dof;
                 break;
 
-            } else if (std::abs(inp.current_acceleration[dof]) > eps) {
+            } else if (compat_abs(inp.current_acceleration[dof]) > eps) {
                 scale_vector = &inp.current_acceleration;
                 scale_dof = dof;
                 break;
 
-            } else if (std::abs(inp.target_velocity[dof]) > eps) {
+            } else if (compat_abs(inp.target_velocity[dof]) > eps) {
                 scale_vector = &inp.target_velocity;
                 scale_dof = dof;
                 break;
 
-            } else if (std::abs(inp.target_acceleration[dof]) > eps) {
+            } else if (compat_abs(inp.target_acceleration[dof]) > eps) {
                 scale_vector = &inp.target_acceleration;
                 scale_dof = dof;
                 break;
@@ -105,11 +114,11 @@ private:
 
             const double current_scale = scale_vector->operator[](dof);
             if (
-                (inp_per_dof_control_interface[dof] == ControlInterface::Position && std::abs(pd[dof] - pd_scale * current_scale) > eps)
-                || std::abs(inp.current_velocity[dof] - v0_scale * current_scale) > eps
-                || std::abs(inp.current_acceleration[dof] - a0_scale * current_scale) > eps
-                || std::abs(inp.target_velocity[dof] - vf_scale * current_scale) > eps
-                || std::abs(inp.target_acceleration[dof] - af_scale * current_scale) > eps
+                (inp_per_dof_control_interface[dof] == ControlInterface::Position && compat_abs(pd[dof] - pd_scale * current_scale) > eps)
+                || compat_abs(inp.current_velocity[dof] - v0_scale * current_scale) > eps
+                || compat_abs(inp.current_acceleration[dof] - a0_scale * current_scale) > eps
+                || compat_abs(inp.target_velocity[dof] - vf_scale * current_scale) > eps
+                || compat_abs(inp.target_acceleration[dof] - af_scale * current_scale) > eps
             ) {
                 return false;
             }
@@ -148,7 +157,7 @@ private:
                     continue;
                 }
 
-                const double remainder = std::fmod(possible_t_sync, delta_time); // in [0, delta_time)
+                const double remainder = compat_fmod(possible_t_sync, delta_time); // in [0, delta_time)
                 if (remainder > eps) {
                     possible_t_sync += delta_time - remainder;
                 }
@@ -470,20 +479,20 @@ public:
             Profile& p = traj.profiles[0][dof];
             const double t_profile = traj.duration - p.brake.duration - p.accel.duration;
 
-            if (inp_per_dof_synchronization[dof] == Synchronization::TimeIfNecessary && std::abs(inp.target_velocity[dof]) < eps && std::abs(inp.target_acceleration[dof]) < eps) {
+             if (inp_per_dof_synchronization[dof] == Synchronization::TimeIfNecessary && compat_abs(inp.target_velocity[dof]) < eps && compat_abs(inp.target_acceleration[dof]) < eps) {
                 p = blocks[dof].p_min;
                 continue;
             }
 
             // Check if the final time corresponds to an extremal profile calculated in step 1
             // Use 2*eps because of numerical robustness in duration discretization
-            if (std::abs(t_profile - blocks[dof].t_min) < 2*eps) {
+            if (compat_abs(t_profile - blocks[dof].t_min) < 2*eps) {
                 p = blocks[dof].p_min;
                 continue;
-            } else if (blocks[dof].a && std::abs(t_profile - blocks[dof].a->right) < 2*eps) {
+            } else if (blocks[dof].a && compat_abs(t_profile - blocks[dof].a->right) < 2*eps) {
                 p = blocks[dof].a->profile;
                 continue;
-            } else if (blocks[dof].b && std::abs(t_profile - blocks[dof].b->right) < 2*eps) {
+            } else if (blocks[dof].b && compat_abs(t_profile - blocks[dof].b->right) < 2*eps) {
                 p = blocks[dof].b->profile;
                 continue;
             }

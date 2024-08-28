@@ -1,17 +1,23 @@
 #pragma once
 
+#ifdef TC_VER
+
 #include <algorithm>
-#include <array>
-#include <chrono>
-#include <iostream>
-#include <limits>
-#include <math.h>
-#include <numeric>
 #include <optional>
-#include <tuple>
+#define default_throw_validation_error false
+
+#else
+
+#include <algorithm>
+#include <chrono>
+#include <math.h>
+#include <optional>
+#include <ruckig/error.hpp>
+#define default_throw_validation_error true
+
+#endif // TC_VER
 
 #include <ruckig/calculator.hpp>
-#include <ruckig/error.hpp>
 #include <ruckig/input_parameter.hpp>
 #include <ruckig/output_parameter.hpp>
 #include <ruckig/trajectory.hpp>
@@ -136,8 +142,8 @@ public:
                 double t_end_min = 1.0;
                 for (size_t dof = 0; dof < degrees_of_freedom; ++dof) {
                     const double h0 = (pos_current[dof] - pos_start[dof]) / (pos_end[dof] - pos_start[dof]);
-                    const double t_start = h0 - threshold_distance[dof] / std::abs(pos_end[dof] - pos_start[dof]);
-                    const double t_end = h0 + threshold_distance[dof] / std::abs(pos_end[dof] - pos_start[dof]);
+                    const double t_start = h0 - threshold_distance[dof] / compat_abs(pos_end[dof] - pos_start[dof]);
+                    const double t_end = h0 + threshold_distance[dof] / compat_abs(pos_end[dof] - pos_start[dof]);
 
                     t_start_max = std::max(t_start, t_start_max);
                     t_end_min = std::min(t_end, t_end_min);
@@ -170,7 +176,7 @@ public:
     }
 
     //! Validate the input as well as the Ruckig instance for trajectory calculation
-    template<bool throw_validation_error = true>
+    template<bool throw_validation_error = default_throw_validation_error>
     bool validate_input(const InputParameter<DOFs, CustomVector>& input, bool check_current_state_within_limits = false, bool check_target_state_within_limits = true) const {
         if (!input.template validate<throw_validation_error>(check_current_state_within_limits, check_target_state_within_limits)) {
             return false;
@@ -212,7 +218,9 @@ public:
 
     //! Get the next output state (with step delta_time) along the calculated trajectory for the given input
     Result update(const InputParameter<DOFs, CustomVector>& input, OutputParameter<DOFs, CustomVector>& output) {
+#ifndef TC_VER
         const auto start = std::chrono::steady_clock::now();
+#endif // TC_VER
 
         if constexpr (DOFs == 0 && throw_error) {
             if (degrees_of_freedom != input.degrees_of_freedom || degrees_of_freedom != output.degrees_of_freedom) {
@@ -240,8 +248,12 @@ public:
         output.trajectory.at_time(output.time, output.new_position, output.new_velocity, output.new_acceleration, output.new_jerk, output.new_section);
         output.did_section_change = (output.new_section > old_section);  // Report only forward section changes
 
+#ifndef TC_VER
         const auto stop = std::chrono::steady_clock::now();
         output.calculation_duration = std::chrono::duration_cast<std::chrono::nanoseconds>(stop - start).count() / 1000.0;
+#else
+        output.calculation_duration = 0.0;
+#endif // TC_VER
 
         output.pass_to_input(current_input);
 
@@ -253,9 +265,10 @@ public:
     }
 };
 
-
+#ifndef TC_VER
 template<size_t DOFs, template<class, size_t> class CustomVector = StandardVector>
 using RuckigThrow = Ruckig<DOFs, CustomVector, true>;
+#endif // TC_VER
 
 
 } // namespace ruckig

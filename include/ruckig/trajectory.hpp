@@ -5,7 +5,10 @@
 #include <tuple>
 #include <vector>
 
+#ifndef TC_VER
 #include <ruckig/error.hpp>
+#endif
+
 #include <ruckig/profile.hpp>
 
 

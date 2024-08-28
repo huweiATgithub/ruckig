@@ -1,7 +1,13 @@
+#ifdef TC_VER
+#include "TcPch.h"
+#endif
+#pragma hdrstop
+
 #include <ruckig/block.hpp>
 #include <ruckig/velocity.hpp>
 #include <ruckig/profile.hpp>
 #include <ruckig/roots.hpp>
+#include <tc_compat/compat.hpp>
 
 
 namespace ruckig {
@@ -14,7 +20,7 @@ VelocityThirdOrderStep2::VelocityThirdOrderStep2(double tf, double v0, double a0
 bool VelocityThirdOrderStep2::time_acc0(Profile& profile, double aMax, double aMin, double jMax) {
     // UD Solution 1/2
     {
-        const double h1 = std::sqrt((-ad*ad + 2*jMax*((a0 + af)*tf - 2*vd))/(jMax*jMax) + tf*tf);
+        const double h1 = compat_sqrt((-ad*ad + 2*jMax*((a0 + af)*tf - 2*vd))/(jMax*jMax) + tf*tf);
 
         profile.t[0] = ad/(2*jMax) + (tf - h1)/2;
         profile.t[1] = h1;
@@ -68,7 +74,7 @@ bool VelocityThirdOrderStep2::time_acc0(Profile& profile, double aMax, double aM
 }
 
 bool VelocityThirdOrderStep2::time_none(Profile& profile, double aMax, double aMin, double jMax) {
-    if (std::abs(a0) < DBL_EPSILON && std::abs(af) < DBL_EPSILON && std::abs(vd) < DBL_EPSILON) {
+    if (compat_abs(a0) < DBL_EPSILON && compat_abs(af) < DBL_EPSILON && compat_abs(vd) < DBL_EPSILON) {
         profile.t[0] = 0;
         profile.t[1] = tf;
         profile.t[2] = 0;
@@ -97,7 +103,7 @@ bool VelocityThirdOrderStep2::time_none(Profile& profile, double aMax, double aM
 
         const double jf = ad*ad/h1;
 
-        if (std::abs(jf) < std::abs(jMax) + 1e-12 && profile.check_for_velocity_with_timing<ControlSigns::UDDU, ReachedLimits::NONE>(tf, jf, aMax, aMin)) {
+        if (compat_abs(jf) < compat_abs(jMax) + 1e-12 && profile.check_for_velocity_with_timing<ControlSigns::UDDU, ReachedLimits::NONE>(tf, jf, aMax, aMin)) {
             profile.pf = profile.p.back();
             return true;
         }
