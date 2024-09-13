@@ -16,10 +16,6 @@
 #include <vector>
 #endif // TC_VER
 
-#ifdef TC_VER
-#include "TcPch.h"
-#endif
-
 namespace ruckig {
 
 //! Constant for indicating a dynamic (run-time settable) number of DoFs
